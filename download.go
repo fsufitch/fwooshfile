@@ -1,7 +1,8 @@
 package filebounce
 
+import "fmt"
 import "net/http"
-import "time"
+import "strconv"
 
 func RegisterDownloadHandlers() {
 	http.HandleFunc("/d/", handleDownloads)
@@ -10,30 +11,21 @@ func RegisterDownloadHandlers() {
 func handleDownloads(w http.ResponseWriter, r *http.Request) {
 	dlId := r.URL.Path[len("/d/"):]
 	if len(dlId) > 0 {
-		handleDownloaderPage(dlId, w, r)
+		handleActualDownload(dlId, w, r)
 	} else {
 		http.NotFound(w, r)
 	}
 }
 
-func handleDownloaderPage(dlId string, w http.ResponseWriter, r *http.Request) {
-	writeStuff := func(dt DownloadTarget) {
-		dt.StartFile("output.txt", "text/plain")
-		dt.Stream <- []byte("hello\n")
-		time.Sleep(1 * time.Second)
-		dt.Stream <- []byte("world\n")
-		time.Sleep(1 * time.Second)
-		dt.Stream <- []byte("how are you today?\n")
-		time.Sleep(1 * time.Second)
-		dt.Stream <- []byte("this is download ID: " + dlId + "\n")
-		close(dt.Stream)
-	}
-
+func handleActualDownload(dlId string, w http.ResponseWriter, r *http.Request) {
 	dt := NewDownloadTarget(dlId, w)
+	err := RegisterDownloadTarget(dlId, dt)
+	if err != nil {
+		http.Error(w, "Error registering download: " + err.Error(), 500)
+		return
+	}
 	go dt.Download()
-	go writeStuff(dt)
-
-	_ = <-dt.Done
+	<-dt.Done
 }
 
 func tryFlushing(w http.ResponseWriter) {
@@ -63,15 +55,18 @@ func NewDownloadTarget(dlId string, w http.ResponseWriter) (dt DownloadTarget) {
 func (dt DownloadTarget) Download() {
 	_ = <-dt.headersDone
 	for data := range dt.Stream  {
+		fmt.Println("[download] Received data: ", data)
 		dt.out.Write(data)
 		tryFlushing(dt.out)
+		fmt.Println("[download] Processed.")
 	}
 	dt.Done <- true
 }
 
-func (dt DownloadTarget) StartFile(filename, mimetype string) {
-	dt.out.Header().Set("Content-Type", mimetype)
-	dt.out.Header().Set("Content-Disposition", "attachment; filename=" + filename)
+func (dt DownloadTarget) StartFile(bf *BounceFile) {
+	dt.out.Header().Set("Content-Type", bf.Mimetype)
+	dt.out.Header().Set("Content-Disposition", "attachment; filename=" + bf.Filename)
+	dt.out.Header().Set("Content-Length", strconv.Itoa(bf.Size))
 	dt.out.WriteHeader(200)
 	dt.headersDone <- true
 }
