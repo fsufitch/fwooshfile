@@ -46,7 +46,7 @@ type DownloadTarget struct {
 	dlId string
 	out http.ResponseWriter
 	headersDone chan bool
-	
+
 	Stream chan []byte
 	Done chan bool
 }
