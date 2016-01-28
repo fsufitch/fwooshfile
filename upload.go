@@ -1,5 +1,6 @@
 package filebounce
 
+import "encoding/base64"
 import "fmt"
 import "io/ioutil"
 import "net/http"
@@ -46,7 +47,7 @@ func handleUploadChunk(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-/*
+  /*
   c, err := r.Cookie(bf.CookieName)
   if err != nil || (c != nil && c.Value != bf.DlId) {
     http.Error(w, fmt.Sprintf("Invalid cookie value: ", c.Value), 400)
@@ -54,9 +55,15 @@ func handleUploadChunk(w http.ResponseWriter, r *http.Request) {
   }
   */
 
-  data, err := ioutil.ReadAll(r.Body)
+  encodedData, err := ioutil.ReadAll(r.Body)
   if err != nil {
     http.Error(w, "Error reading request body: " + err.Error(), 500)
+    return
+  }
+
+  data, err := base64.StdEncoding.DecodeString(string(encodedData))
+  if err != nil {
+    http.Error(w, "Error decoding base64 data: " + err.Error(), 500)
     return
   }
 
@@ -65,10 +72,10 @@ func handleUploadChunk(w http.ResponseWriter, r *http.Request) {
     http.Error(w, "Error bouncing data: " + err.Error(), 500)
     return
   }
-  fmt.Println("[upload] Sent data:", data)
   if bf.TransferFinished {
-    w.Write([]byte("Done"))
+    w.Write([]byte("Done\n"))
   } else {
     w.Write([]byte("OK\n"))
   }
+  fmt.Print("");
 }

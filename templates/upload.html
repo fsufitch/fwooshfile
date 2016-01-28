@@ -4,10 +4,87 @@
 <head>
   {{template "header_stdcss"}}
   {{template "header_stdjs"}}
+  <link rel="stylesheet" type="text/css" href="/s/css/upload.css" />
+  <script type="text/javascript" src="/s/js/upload.js"> </script>
   <title>File Bouncer</title>
 </head>
 <body>
-  <p> Hello, world! </p>
+  <input type="file" class="hidden" id="selectedfile" />
+  <input type="hidden" class="hidden" id="downloadid" value=""/>
+
+  <div class="container">
+    <div class="page-header">
+      <h1> File Bounce <small> Browser-based, easy file sharing</small></h1>
+    </div>
+
+    <div id="step1" class="text-center" >
+      <p class="lead">
+        <button class="btn btn-default file-pick">
+          <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+          Pick your file
+        </button>
+        or drop it onto this page
+      </p>
+
+      <div class="alert alert-danger" id="step1-error" style="display:none"> </div>
+
+      <div class="bg-info upload-info" style="display:none">
+        <p class="lead">
+          <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+          <strong class="filename"></strong>
+          <span class="text-muted">
+            (<span class="filesize"></span>; <span class="filetype"></span>)
+          </span>
+        </p>
+      </div>
+
+      <div id="step1-fileselected" style="display:none">
+        <button class="btn btn-default file-pick"> Select a different file </button>
+        <button class="btn btn-primary" id="step1-go"> Create download link </button>
+      </div>
+    </div>
+
+    <div id="step2" class="text-center" style="display:none">
+      <div class="alert alert-info upload-info">
+        <p class="lead">
+          <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+          <strong class="filename"></strong>
+          <span class="text-muted">
+            (<span class="filesize"></span>; <span class="filetype"></span>)
+          </span>
+        </p>
+      </div>
+      <div id="dl-instructions">
+      <p class="lead">
+        Have your friends visit this download link to start the download:
+      </p>
+      <p class="lead">
+        <a id="dllink" href="#" target="_blank">http://example.org</a>
+      </p>
+      <p>
+        When prompted, they need to <em>save</em> the file and start
+        downloading it. They will receive its contents as soon as you start
+        the upload.
+      </p>
+      <p>
+        <button class="btn btn-default" id="step2-confirm">
+          <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+          Link shared and downloads started
+        </button>
+      </p>
+    </div>
+      <p id="upload-trigger" style="display: none">
+        <button class="btn btn-primary" id="link-confirm">
+          <big>
+            <span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span>
+            Start uploading
+          </big>
+        </button>
+      </p>
+
+
+    </div>
+  </div>
 </body>
 </html>
 {{end}}

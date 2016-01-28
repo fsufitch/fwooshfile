@@ -72,6 +72,7 @@ func RegisterDownloadTarget(dlId string, target DownloadTarget) error {
   }
 
   bf.targets = append(bf.targets, target)
+  target.StartFile(bf)
   return nil
 }
 
@@ -81,10 +82,10 @@ func (bf *BounceFile) SendData(data []byte) error {
   }
 
   if !bf.transferStarted {
-    bf.transferStarted = true
+    bf.transferStarted = true /*
     for _, target := range bf.targets {
       target.StartFile(bf)
-    }
+    } */
   }
 
   remaining := bf.Size - bf.sizeProgress

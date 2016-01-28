@@ -53,9 +53,9 @@ func NewDownloadTarget(dlId string, w http.ResponseWriter) (dt DownloadTarget) {
 }
 
 func (dt DownloadTarget) Download() {
-	_ = <-dt.headersDone
+	//<-dt.headersDone
 	for data := range dt.Stream  {
-		fmt.Println("[download] Received data: ", data)
+		//fmt.Println("[download] Received data: ", data)
 		dt.out.Write(data)
 		tryFlushing(dt.out)
 		fmt.Println("[download] Processed.")
@@ -68,5 +68,6 @@ func (dt DownloadTarget) StartFile(bf *BounceFile) {
 	dt.out.Header().Set("Content-Disposition", "attachment; filename=" + bf.Filename)
 	dt.out.Header().Set("Content-Length", strconv.Itoa(bf.Size))
 	dt.out.WriteHeader(200)
-	dt.headersDone <- true
+	tryFlushing(dt.out)
+	//dt.headersDone <- true
 }

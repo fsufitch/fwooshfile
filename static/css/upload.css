@@ -1,0 +1,9 @@
+input#selectedfile {
+  position: fixed; top: 0px; left: 0px;
+  width: 1px; height: 1px;
+  opacity: 0;
+}
+
+.page-header {
+  margin-bottom: 20px;
+}

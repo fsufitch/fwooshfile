@@ -10,6 +10,9 @@ func InitializeWebUI(staticpath, templatepath string) {
   _Templates, err := template.ParseGlob(path.Join(templatepath, "*"))
   Templates = _Templates
   if err != nil { panic(err) }
-  http.Handle("/s/", http.FileServer(http.Dir(staticpath)))
+  println(staticpath)
+  http.Handle("/s/", http.StripPrefix("/s/", http.FileServer(http.Dir(staticpath))))
   http.HandleFunc("/", handleUploadPage)
+
+
 }
