@@ -6,8 +6,8 @@ import "net/http"
 import "strconv"
 
 func RegisterUploadHandlers() {
-  http.HandleFunc("/new_upload/", handleNewUpload)
-  http.HandleFunc("/upload/", handleUploadChunk)
+  http.HandleFunc("/api/new_upload/", handleNewUpload)
+  http.HandleFunc("/api/upload/", handleUploadChunk)
 }
 
 func handleNewUpload(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +39,7 @@ func handleNewUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleUploadChunk(w http.ResponseWriter, r *http.Request) {
-  dlId := r.URL.Path[len("/upload/"):]
+  dlId := r.URL.Path[len("/api/upload/"):]
   bf := GetBounceFile(dlId)
   if bf == nil {
     http.NotFound(w, r)
