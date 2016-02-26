@@ -1,6 +1,6 @@
 package filebounce
 
-import "fmt"
+//import "fmt"
 import "net/http"
 import "strconv"
 
@@ -55,10 +55,10 @@ func NewDownloadTarget(dlId string, w http.ResponseWriter) (dt DownloadTarget) {
 func (dt DownloadTarget) Download() {
 	//<-dt.headersDone
 	for data := range dt.Stream  {
-		//fmt.Println("[download] Received data: ", data)
+		//fmt.Printf("[download] Received data (%d)\n", len(data))
 		dt.out.Write(data)
 		tryFlushing(dt.out)
-		fmt.Println("[download] Processed.")
+		//fmt.Println("[download] Processed.")
 	}
 	dt.Done <- true
 }

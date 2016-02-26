@@ -92,11 +92,46 @@ function send_chunk(file, start, url) {
 }
 
 
+function send_file_websocket(file, url) {
+    var ws = new WebSocket(url);
+    var offset = 0;
+    var total = 0;
+    var ws_send = function() {
+	if (offset > file.size) {
+	    ws.close();
+	    return;
+	}
+	var data = file.slice(offset, offset + CHUNK_SIZE);
+	total += data.size;
+	ws.send(data);
+	offset += data.size;
+    }
+    ws.onopen = ws_send
+    ws.onmessage = function(ev) {
+	if (ev.data == "OK") {
+	    ws_send();
+	} else {
+	    console.log("Unexpected message from server: " + ev.data);
+	}
+    }
+    ws.onerror = function(ev) {
+	console.log("Error! " + ev);
+    }
+}
+
 function do_upload() {
-  var dlId = $("#downloadid").val();
-  var uploadUrl = window.location.origin + "/api/upload/" + dlId;
-  var file = $("#selectedfile").prop("files")[0];
-  send_chunk(file, 0, uploadUrl);
+    var dlId = $("#downloadid").val();
+    var file = $("#selectedfile").prop("files")[0];
+
+    if ($("#wsToggle").prop("checked")) {
+	var wsUrl = (window.location.protocol.replace("http", "ws") +
+		     window.location.host +
+		     "/api/upload_ws/" + dlId);
+	send_file_websocket(file, wsUrl);
+    } else {
+	var uploadUrl = window.location.origin + "/api/upload/" + dlId;
+	send_chunk(file, 0, uploadUrl);
+    }
 }
 
 $(document).ready(function() {

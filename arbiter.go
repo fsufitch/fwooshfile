@@ -77,29 +77,27 @@ func RegisterDownloadTarget(dlId string, target DownloadTarget) error {
 }
 
 func (bf *BounceFile) SendData(data []byte) error {
-  if bf.TransferFinished {
-    return errors.New("Transfer already finished!")
-  }
+	if bf.TransferFinished {
+		return errors.New("Transfer already finished!")
+	}
 
-  if !bf.transferStarted {
-    bf.transferStarted = true /*
-    for _, target := range bf.targets {
-      target.StartFile(bf)
-    } */
-  }
+	if !bf.transferStarted {
+		bf.transferStarted = true
+	}
 
-  remaining := bf.Size - bf.sizeProgress
-  if len(data) > remaining {
-    data = data[:remaining] // XXX: This should probably be an error
-  }
+	remaining := bf.Size - bf.sizeProgress
+	if len(data) > remaining {
+		data = data[:remaining] // XXX: This should probably be an error
+	}
 
-  bf.sizeProgress += len(data)
-  bf.TransferFinished = (bf.sizeProgress >= bf.Size)
-  for _, target := range bf.targets {
-    target.Stream <- data
-    if (bf.TransferFinished) {
-      close(target.Stream)
-    }
-  }
-  return nil
+	bf.sizeProgress += len(data)
+	bf.TransferFinished = (bf.sizeProgress >= bf.Size)
+	for _, target := range bf.targets {
+		target.Stream <- data
+		if (bf.TransferFinished) {
+			close(target.Stream)
+		}
+	}
+	return nil
 }
+

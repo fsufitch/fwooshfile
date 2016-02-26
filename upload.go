@@ -7,8 +7,9 @@ import "net/http"
 import "strconv"
 
 func RegisterUploadHandlers() {
-  http.HandleFunc("/api/new_upload/", handleNewUpload)
-  http.HandleFunc("/api/upload/", handleUploadChunk)
+	http.HandleFunc("/api/new_upload/", handleNewUpload)
+	http.HandleFunc("/api/upload/", handleUploadChunk)
+	RegisterWSUploadHandlers()
 }
 
 func handleNewUpload(w http.ResponseWriter, r *http.Request) {
@@ -46,14 +47,6 @@ func handleUploadChunk(w http.ResponseWriter, r *http.Request) {
     http.NotFound(w, r)
     return
   }
-
-  /*
-  c, err := r.Cookie(bf.CookieName)
-  if err != nil || (c != nil && c.Value != bf.DlId) {
-    http.Error(w, fmt.Sprintf("Invalid cookie value: ", c.Value), 400)
-    return
-  }
-  */
 
   encodedData, err := ioutil.ReadAll(r.Body)
   if err != nil {
