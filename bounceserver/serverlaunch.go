@@ -6,6 +6,7 @@ import "os"
 import "filebounce"
 import "filebounce/webui"
 
+// Config of this bounce server
 type Config struct {
 	host, staticpath, templatepath string
 }
@@ -17,6 +18,7 @@ func main() {
 
 	filebounce.RegisterDownloadHandlers()
 	filebounce.RegisterUploadHandlers()
+	filebounce.RegisterStatusHandlers()
 	webui.InitializeWebUI(staticpath, templatepath)
 
 	err := http.ListenAndServe(":8080", nil)
