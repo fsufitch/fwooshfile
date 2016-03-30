@@ -91,6 +91,9 @@ func (c TransferClient) registerNewUpload(filename, mimetype string, size int64)
 		return
 	}
 	uploadID = string(bodyData)
+	if uploadID == "" {
+		return "", errors.New("No upload ID received!")
+	}
 
 	return
 }
