@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	apiurlPtr := flag.String("apiurl", "http://localhost:8080",
+	apiurlPtr := flag.String("apiurl", "http://localhost:8080/",
 		"the URL at which the filebounce API is located")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [-h] [-apiurl APIURL] FILE\n", os.Args[0])
@@ -31,11 +31,24 @@ func main() {
 		Path: filepath,
 	}
 
-	_, err := fileTransfer.StartTransfer(transferClient)
+	transferID, err := fileTransfer.StartTransfer(transferClient)
 
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Error initializing transfer: %s", err)
 	}
+
+	fmt.Printf("Upload registered. Download at: %s\n", transferClient.BaseURL+"d/"+transferID)
+
+	fmt.Print("Push Enter to start upload: ")
+	var input string
+	fmt.Scanln(&input)
+	fmt.Println("Uploading...")
+
+	fileTransfer.Start <- true
 	<-fileTransfer.Done
+
+	if fileTransfer.Error != nil {
+		panic(fileTransfer.Error)
+	}
 	fmt.Println("Done!")
 }

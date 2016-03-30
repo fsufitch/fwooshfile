@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -12,6 +13,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"golang.org/x/net/websocket"
 )
 
 // TransferClient encapsulates the client network connection
@@ -24,7 +27,7 @@ type FileTransfer struct {
 	Path, Mimetype    string
 	File              *os.File
 	prepared, started bool
-	Done              chan bool
+	Start, Done       chan bool
 	Error             error
 }
 
@@ -101,7 +104,7 @@ func (c TransferClient) registerNewUpload(filename, mimetype string, size int64)
 // Prepare prepares a file transfer and makes sure its state is ready for upload
 // * check that File is non-nil, otherwise initialize it from Path
 // * check that File can be opened and is not a directory
-// * create the Done channel
+// * create the Done and Start channels
 func (t *FileTransfer) Prepare() error {
 	if t.prepared {
 		return nil // already done
@@ -140,6 +143,7 @@ func (t *FileTransfer) Prepare() error {
 	}
 
 	t.Done = make(chan bool)
+	t.Start = make(chan bool)
 	t.prepared = true
 	return nil
 }
@@ -158,7 +162,10 @@ func (t *FileTransfer) StartTransfer(c TransferClient) (uploadID string, err err
 
 	info, _ := t.File.Stat()
 
-	uploadID, err = c.registerNewUpload(t.File.Name(), t.Mimetype, info.Size())
+	uploadID, err = c.registerNewUpload(
+		filepath.Base(t.File.Name()),
+		t.Mimetype,
+		info.Size())
 	if err != nil {
 		return
 	}
@@ -169,6 +176,44 @@ func (t *FileTransfer) StartTransfer(c TransferClient) (uploadID string, err err
 }
 
 func (t *FileTransfer) doUploadWebSocket(uploadID string, c TransferClient) {
-	fmt.Printf("Stub uploading ID %s to %s\n", uploadID, c.BaseURL)
+	wsURL := c.BaseURL + "api/upload_ws/" + uploadID
+	if wsURL[:4] == "http" {
+		wsURL = "ws" + wsURL[4:]
+	} else {
+		t.Error = errors.New("Unrecognized non-HTTP scheme: " + wsURL)
+	}
+
+	<-t.Start
+	config, _ := websocket.NewConfig(wsURL, c.BaseURL)
+	conn, err := websocket.DialConfig(config)
+	//defer conn.Close()
+
+	if err != nil {
+		t.Error = err
+		t.Done <- true
+		return
+	}
+
+	buf := make([]byte, 50000) // 50 KB arbitrary
+	reader := bufio.NewReader(t.File)
+	for {
+		_, fileErr := reader.Read(buf)
+		if fileErr != nil {
+			if fileErr == io.EOF {
+				break
+			}
+			t.Error = fileErr
+			t.Done <- true
+			return
+		}
+		conn.Write(buf)
+		conn.Read(buf)
+		if !bytes.Equal(buf[:2], []byte("OK")) {
+			t.Error = fmt.Errorf("Data transfer error! %s", string(buf))
+			t.Done <- true
+			return
+		}
+	}
+
 	t.Done <- true
 }
