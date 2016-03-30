@@ -186,7 +186,7 @@ func (t *FileTransfer) doUploadWebSocket(uploadID string, c TransferClient) {
 	<-t.Start
 	config, _ := websocket.NewConfig(wsURL, c.BaseURL)
 	conn, err := websocket.DialConfig(config)
-	//defer conn.Close()
+	defer conn.Close()
 
 	if err != nil {
 		t.Error = err
@@ -198,10 +198,7 @@ func (t *FileTransfer) doUploadWebSocket(uploadID string, c TransferClient) {
 	reader := bufio.NewReader(t.File)
 	for {
 		_, fileErr := reader.Read(buf)
-		if fileErr != nil {
-			if fileErr == io.EOF {
-				break
-			}
+		if fileErr != nil && fileErr != io.EOF {
 			t.Error = fileErr
 			t.Done <- true
 			return
@@ -212,6 +209,9 @@ func (t *FileTransfer) doUploadWebSocket(uploadID string, c TransferClient) {
 			t.Error = fmt.Errorf("Data transfer error! %s", string(buf))
 			t.Done <- true
 			return
+		}
+		if fileErr == io.EOF {
+			break
 		}
 	}
 
