@@ -1,0 +1,5 @@
+{
+  "Host": ":8080",
+  "StaticPath": "src/filebounce/static",
+  "TemplatePath": "src/filebounce/templates"
+}

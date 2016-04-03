@@ -1,27 +1,48 @@
 package main
 
-import "net/http"
-import "os"
-
-import "filebounce"
-import "filebounce/webui"
+import (
+	"encoding/json"
+	"filebounce"
+	"filebounce/webui"
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+)
 
 // Config of this bounce server
 type Config struct {
-	host, staticpath, templatepath string
+	Host, StaticPath, TemplatePath string
+}
+
+func parseConfiguration(confpath string) (c Config, err error) {
+	data, err := ioutil.ReadFile(confpath)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(data, &c)
+	return
 }
 
 func main() {
-	// TODO: dynamic config
-	staticpath := os.Args[1]
-	templatepath := os.Args[2]
+	confpath := flag.String("conf", "/etc/filebounce.json", "path to JSON config file")
+	flag.Parse()
+
+	conf, err := parseConfiguration(*confpath)
+	if err != nil {
+		panic(err)
+	}
 
 	filebounce.RegisterDownloadHandlers()
 	filebounce.RegisterUploadHandlers()
 	filebounce.RegisterStatusHandlers()
-	webui.InitializeWebUI(staticpath, templatepath)
 
-	err := http.ListenAndServe(":8080", nil)
+	fmt.Fprint(os.Stderr, "Setting up paths...\n")
+	webui.InitializeWebUI(conf.StaticPath, conf.TemplatePath)
+
+	fmt.Fprintf(os.Stderr, "Serving on %s\n", conf.Host)
+	err = http.ListenAndServe(conf.Host, nil)
 	if err != nil {
 		panic(err)
 	}

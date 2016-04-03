@@ -1,6 +1,5 @@
 package filebounce
 
-//import "fmt"
 import "net/http"
 import "strconv"
 
@@ -18,10 +17,10 @@ func handleDownloads(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleActualDownload(dlId string, w http.ResponseWriter, r *http.Request) {
-	dt := NewDownloadTarget(dlId, w)
+	dt := NewDownloadTarget(dlId, "sample", w)
 	err := RegisterDownloadTarget(dlId, dt)
 	if err != nil {
-		http.Error(w, "Error registering download: " + err.Error(), 500)
+		http.Error(w, "Error registering download: "+err.Error(), 500)
 		return
 	}
 	go dt.Download()
@@ -35,16 +34,17 @@ func tryFlushing(w http.ResponseWriter) {
 }
 
 type DownloadTarget struct {
-	dlId string
-	out http.ResponseWriter
+	dlId, Name  string
+	out         http.ResponseWriter
 	headersDone chan bool
 
 	Stream chan []byte
-	Done chan bool
+	Done   chan bool
 }
 
-func NewDownloadTarget(dlId string, w http.ResponseWriter) (dt DownloadTarget) {
+func NewDownloadTarget(dlId, name string, w http.ResponseWriter) (dt DownloadTarget) {
 	dt.dlId = dlId
+	dt.Name = name
 	dt.out = w
 	dt.headersDone = make(chan bool)
 	dt.Stream = make(chan []byte)
@@ -54,7 +54,7 @@ func NewDownloadTarget(dlId string, w http.ResponseWriter) (dt DownloadTarget) {
 
 func (dt DownloadTarget) Download() {
 	//<-dt.headersDone
-	for data := range dt.Stream  {
+	for data := range dt.Stream {
 		//fmt.Printf("[download] Received data (%d)\n", len(data))
 		dt.out.Write(data)
 		tryFlushing(dt.out)
@@ -65,7 +65,7 @@ func (dt DownloadTarget) Download() {
 
 func (dt DownloadTarget) StartFile(bf *BounceFile) {
 	dt.out.Header().Set("Content-Type", bf.Mimetype)
-	dt.out.Header().Set("Content-Disposition", "attachment; filename=" + bf.Filename)
+	dt.out.Header().Set("Content-Disposition", "attachment; filename="+bf.Filename)
 	dt.out.Header().Set("Content-Length", strconv.Itoa(bf.Size))
 	dt.out.WriteHeader(200)
 	tryFlushing(dt.out)
