@@ -1,4 +1,4 @@
-package filebounce
+package relay
 
 import "net/http"
 import "strconv"
@@ -8,6 +8,7 @@ func RegisterDownloadHandlers() {
 }
 
 func handleDownloads(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	dlId := r.URL.Path[len("/d/"):]
 	if len(dlId) > 0 {
 		handleActualDownload(dlId, w, r)

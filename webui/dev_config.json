@@ -1,0 +1,8 @@
+{
+  "Host": ":8081",
+  "StaticPath": "src/filebounce/webui/static",
+  "TemplatePath": "src/filebounce/webui/templates",
+  "RelayAddrs": [
+    "localhost:8080"
+  ]
+}

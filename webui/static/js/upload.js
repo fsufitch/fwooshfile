@@ -42,17 +42,17 @@ function step1_go() {
 
   $.ajax({
     method: "POST",
-    url: "/api/new_upload",
+    url: "http://" + RELAY_HOST + "/api/new_upload/",
     headers: {
       "X-FileBounce-Filename": file.name,
-      "X-FileBounce-Content-Type": file.type,
+      "X-FileBounce-Content-Type": file.type ? file.type : "application/octet-stream",
       "X-FileBounce-Content-Length": file.size,
       "X-FileBounce-Token": "not implemented",
     },
     dataType: "text",
     success: function(data){
       $("#downloadid").val(data);
-      var dlHref = window.location.origin + "/d/" + data;
+      var dlHref = "http://" + RELAY_HOST + "/d/" + data;
       $("a#dllink").attr("href", dlHref).text(dlHref);
       $("#step2").fadeIn();
     }
@@ -125,11 +125,10 @@ function do_upload() {
 
     if ($("#wsToggle").prop("checked")) {
 	var wsUrl = (window.location.protocol.replace("http", "ws") +
-		     window.location.host +
-		     "/api/upload_ws/" + dlId);
+		      RELAY_HOST + "/api/upload_ws/" + dlId);
 	send_file_websocket(file, wsUrl);
     } else {
-	var uploadUrl = window.location.origin + "/api/upload/" + dlId;
+	var uploadUrl = "http://" + RELAY_HOST + "/api/upload/" + dlId;
 	send_chunk(file, 0, uploadUrl);
     }
 }

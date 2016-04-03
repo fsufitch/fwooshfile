@@ -1,4 +1,4 @@
-package filebounce
+package relay
 
 import "io"
 import "net/http"
@@ -16,16 +16,18 @@ func websocketUploadServer(ws *websocket.Conn) {
 		return
 	}
 
-	var dataBuffer [50000]byte; // 50 KB arbitrary
+	var dataBuffer [50000]byte // 50 KB arbitrary
 	total := 0
 	for {
 		numBytes, err := ws.Read(dataBuffer[:])
 		total += numBytes
 		dataCopy := append([]byte{}, dataBuffer[:numBytes]...)
-		
+
 		bf.SendData(dataCopy)
-		if err == io.EOF { break }
-		
+		if err == io.EOF {
+			break
+		}
+
 		if err != nil { // Oops!
 			ws.Write([]byte("ERROR! " + err.Error()))
 			break
