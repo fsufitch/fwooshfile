@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"filebounce/webui"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/fsufitch/fwooshfile/webui"
 )
 
 // Config of this bounce server

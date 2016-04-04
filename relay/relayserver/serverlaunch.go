@@ -3,12 +3,13 @@ package main
 import (
 	"encoding/json"
 
-	"filebounce/relay"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+
+	"github.com/fsufitch/fwooshfile/relay"
 )
 
 // Config of this bounce server

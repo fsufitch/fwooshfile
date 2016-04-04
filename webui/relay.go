@@ -2,9 +2,10 @@ package webui
 
 import (
 	"errors"
-	"filebounce/client"
 	"fmt"
 	"os"
+
+	"github.com/fsufitch/fwooshfile/client"
 )
 
 // FwooshRelay is a struct representing one relay server

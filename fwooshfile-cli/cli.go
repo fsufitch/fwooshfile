@@ -1,10 +1,11 @@
 package main
 
 import (
-	"filebounce/client"
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/fsufitch/fwooshfile/client"
 )
 
 func main() {
