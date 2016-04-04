@@ -1,0 +1,7 @@
+FROM golang
+
+ADD . /go/src/github.com/fsufitch/fwooshfile
+
+RUN go get github.com/fsufitch/fwooshfile/relay/relayserver
+
+ENTRYPOINT /go/bin/relayserver
